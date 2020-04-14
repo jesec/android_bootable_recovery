@@ -53,8 +53,6 @@
 	#define CRYPT_FOOTER_OFFSET 0x4000
 #endif
 extern "C" {
-	#include "mtdutils/mtdutils.h"
-	#include "mtdutils/mounts.h"
 #ifdef USE_EXT4
 	// #include "make_ext4fs.h" TODO need ifdef for android8
 	#include <ext4_utils/make_ext4fs.h>
@@ -244,7 +242,6 @@ TWPartition::TWPartition() {
 	Storage_Name = "";
 	Backup_Name = "";
 	Backup_FileName = "";
-	MTD_Name = "";
 	Backup_Method = BM_NONE;
 	Can_Encrypt_Backup = false;
 	Use_Userdata_Encryption = false;
@@ -341,18 +338,7 @@ bool TWPartition::Process_Fstab_Line(const char *fstab_line, bool Display_Error,
 			item_index++;
 		} else if (item_index == block_device_index) {
 			// Primary Block Device
-			if (Fstab_File_System == "mtd" || Fstab_File_System == "yaffs2") {
-				MTD_Name = ptr;
-				Find_MTD_Block_Device(MTD_Name);
-			} else if (Fstab_File_System == "bml") {
-				if (Mount_Point == "/boot")
-					MTD_Name = "boot";
-				else if (Mount_Point == "/recovery")
-					MTD_Name = "recovery";
-				Primary_Block_Device = ptr;
-				if (*ptr != '/')
-					LOGERR("Until we get better BML support, you will have to find and provide the full block device path to the BML devices e.g. /dev/block/bml9 instead of the partition name\n");
-			} else if (*ptr != '/') {
+			if (*ptr != '/') {
 				if (!Is_Super) {
 					if (Display_Error)
 						LOGERR("Invalid block device '%s' in fstab line '%s'", ptr, fstab_line);
@@ -1078,7 +1064,7 @@ bool TWPartition::Is_File_System(string File_System) {
 }
 
 bool TWPartition::Is_Image(string File_System) {
-	if (File_System == "emmc" || File_System == "mtd" || File_System == "bml")
+	if (File_System == "emmc")
 		return true;
 	else
 		return false;
@@ -1118,8 +1104,6 @@ void TWPartition::Setup_Image() {
 	Backup_Name = Display_Name;
 	if (Current_File_System == "emmc")
 		Backup_Method = BM_DD;
-	else if (Current_File_System == "mtd" || Current_File_System == "bml")
-		Backup_Method = BM_FLASH_UTILS;
 	else
 		LOGINFO("Unhandled file system '%s' on image '%s'\n", Current_File_System.c_str(), Display_Name.c_str());
 }
@@ -1210,48 +1194,6 @@ bool TWPartition::Mount_Storage_Retry(bool Display_Error) {
 		return Mount(Display_Error);
 	}
 	return true;
-}
-
-bool TWPartition::Find_MTD_Block_Device(string MTD_Name) {
-	FILE *fp = NULL;
-	char line[255];
-
-	fp = fopen("/proc/mtd", "rt");
-	if (fp == NULL) {
-		LOGERR("Device does not support /proc/mtd\n");
-		return false;
-	}
-
-	while (fgets(line, sizeof(line), fp) != NULL)
-	{
-		char device[32], label[32];
-		unsigned long size = 0;
-		int deviceId;
-
-		sscanf(line, "%s %lx %*s %*c%s", device, &size, label);
-
-		// Skip header and blank lines
-		if ((strcmp(device, "dev:") == 0) || (strlen(line) < 8))
-			continue;
-
-		// Strip off the trailing " from the label
-		label[strlen(label)-1] = '\0';
-
-		if (strcmp(label, MTD_Name.c_str()) == 0) {
-			// We found our device
-			// Strip off the trailing : from the device
-			device[strlen(device)-1] = '\0';
-			if (sscanf(device,"mtd%d", &deviceId) == 1) {
-				sprintf(device, "/dev/block/mtdblock%d", deviceId);
-				Primary_Block_Device = device;
-				fclose(fp);
-				return true;
-			}
-		}
-	}
-	fclose(fp);
-
-	return false;
 }
 
 bool TWPartition::Get_Size_Via_statfs(bool Display_Error) {
@@ -1481,47 +1423,6 @@ bool TWPartition::Mount(bool Display_Error) {
 	if (Mount_Read_Only)
 		flags |= MS_RDONLY;
 
-	if (Fstab_File_System == "yaffs2") {
-		// mount an MTD partition as a YAFFS2 filesystem.
-		flags = MS_NOATIME | MS_NODEV | MS_NODIRATIME;
-		if (Mount_Read_Only)
-			flags |= MS_RDONLY;
-		if (mount(Actual_Block_Device.c_str(), Mount_Point.c_str(), Fstab_File_System.c_str(), flags, NULL) < 0) {
-			if (mount(Actual_Block_Device.c_str(), Mount_Point.c_str(), Fstab_File_System.c_str(), flags | MS_RDONLY, NULL) < 0) {
-				if (Display_Error)
-					gui_msg(Msg(msg::kError, "fail_mount=Failed to mount '{1}' ({2})")(Mount_Point)(strerror(errno)));
-				else
-					LOGINFO("Failed to mount '%s' (MTD)\n", Mount_Point.c_str());
-				return false;
-			} else {
-				LOGINFO("Mounted '%s' (MTD) as RO\n", Mount_Point.c_str());
-				return true;
-			}
-		} else {
-			struct stat st;
-			string test_path = Mount_Point;
-			if (stat(test_path.c_str(), &st) < 0) {
-				if (Display_Error)
-					gui_msg(Msg(msg::kError, "fail_mount=Failed to mount '{1}' ({2})")(Mount_Point)(strerror(errno)));
-				else
-					LOGINFO("Failed to mount '%s' (MTD)\n", Mount_Point.c_str());
-				return false;
-			}
-			mode_t new_mode = st.st_mode | S_IXUSR | S_IXGRP | S_IXOTH;
-			if (new_mode != st.st_mode) {
-				LOGINFO("Fixing execute permissions for %s\n", Mount_Point.c_str());
-				if (chmod(Mount_Point.c_str(), new_mode) < 0) {
-					if (Display_Error)
-						LOGERR("Couldn't fix permissions for %s: %s\n", Mount_Point.c_str(), strerror(errno));
-					else
-						LOGINFO("Couldn't fix permissions for %s: %s\n", Mount_Point.c_str(), strerror(errno));
-					return false;
-				}
-			}
-			return true;
-		}
-	}
-
 	string mount_fs = Current_File_System;
 	if (Current_File_System == "exfat" && TWFunc::Path_Exists("/sys/module/texfat"))
 		mount_fs = "texfat";
@@ -1664,8 +1565,6 @@ bool TWPartition::Wipe(string New_File_System) {
 			wiped = Wipe_FAT();
 		else if (New_File_System == "exfat")
 			wiped = Wipe_EXFAT();
-		else if (New_File_System == "yaffs2")
-			wiped = Wipe_MTD();
 		else if (New_File_System == "f2fs")
 			wiped = Wipe_F2FS();
 		else if (New_File_System == "ntfs")
@@ -1917,8 +1816,6 @@ bool TWPartition::Backup(PartitionSettings *part_settings, pid_t *tar_fork_pid) 
 		return Backup_Tar(part_settings, tar_fork_pid);
 	else if (Backup_Method == BM_DD)
 		return Backup_Image(part_settings);
-	else if (Backup_Method == BM_FLASH_UTILS)
-		return Backup_Dump_Image(part_settings);
 	LOGERR("Unknown backup method for '%s'\n", Mount_Point.c_str());
 	return false;
 }
@@ -1966,8 +1863,6 @@ string TWPartition::Backup_Method_By_Name() {
 		return "files";
 	else if (Backup_Method == BM_DD)
 		return "dd";
-	else if (Backup_Method == BM_FLASH_UTILS)
-		return "flash_utils";
 	else
 		return "undefined";
 	return "ERROR!";
@@ -2040,8 +1935,8 @@ void TWPartition::Check_FS_Type() {
 	const char* type;
 	blkid_probe pr;
 
-	if (Fstab_File_System == "yaffs2" || Fstab_File_System == "mtd" || Fstab_File_System == "bml" || Ignore_Blkid)
-		return; // Running blkid on some mtd devices causes a massive crash or needs to be skipped
+	if (Ignore_Blkid)
+		return;
 
 	Find_Actual_Block_Device();
 	if (!Is_Present)
@@ -2267,39 +2162,6 @@ bool TWPartition::Wipe_EXFAT() {
 		return true;
 	}
 	return false;
-}
-
-bool TWPartition::Wipe_MTD() {
-	if (!UnMount(true))
-		return false;
-
-	gui_msg(Msg("formatting_using=Formatting {1} using {2}...")(Display_Name)("MTD"));
-
-	mtd_scan_partitions();
-	const MtdPartition* mtd = mtd_find_partition_by_name(MTD_Name.c_str());
-	if (mtd == NULL) {
-		LOGERR("No mtd partition named '%s'", MTD_Name.c_str());
-		return false;
-	}
-
-	MtdWriteContext* ctx = mtd_write_partition(mtd);
-	if (ctx == NULL) {
-		LOGERR("Can't write '%s', failed to format.", MTD_Name.c_str());
-		return false;
-	}
-	if (mtd_erase_blocks(ctx, -1) == -1) {
-		mtd_write_close(ctx);
-		LOGERR("Failed to format '%s'", MTD_Name.c_str());
-		return false;
-	}
-	if (mtd_write_close(ctx) != 0) {
-		LOGERR("Failed to close '%s'", MTD_Name.c_str());
-		return false;
-	}
-	Current_File_System = "yaffs2";
-	Recreate_AndSec_Folder();
-	gui_msg("done=Done.");
-	return true;
 }
 
 bool TWPartition::Wipe_RMRF() {
@@ -2700,34 +2562,6 @@ exit:
 	return ret;
 }
 
-bool TWPartition::Backup_Dump_Image(PartitionSettings *part_settings) {
-	string Full_FileName, Command;
-
-	TWFunc::GUI_Operation_Text(TW_BACKUP_TEXT, Display_Name, gui_parse_text("{@backing}"));
-	gui_msg(Msg("backing_up=Backing up {1}...")(Backup_Display_Name));
-
-	if (part_settings->progress)
-		part_settings->progress->SetPartitionSize(Backup_Size);
-
-	Backup_FileName = Backup_Name + "." + Current_File_System + ".win";
-	Full_FileName = part_settings->Backup_Folder + "/" + Backup_FileName;
-
-	Command = "dump_image " + MTD_Name + " '" + Full_FileName + "'";
-
-	LOGINFO("Backup command: '%s'\n", Command.c_str());
-	TWFunc::Exec_Cmd(Command);
-	tw_set_default_metadata(Full_FileName.c_str());
-	if (TWFunc::Get_File_Size(Full_FileName) == 0) {
-		// Actual size may not match backup size due to bad blocks on MTD devices so just check for 0 bytes
-		gui_msg(Msg(msg::kError, "backup_size=Backup file size for '{1}' is 0 bytes.")(Full_FileName));
-		return false;
-	}
-	if (part_settings->progress)
-		part_settings->progress->UpdateSize(Backup_Size);
-
-	return true;
-}
-
 unsigned long long TWPartition::Get_Restore_Size(PartitionSettings *part_settings) {
 	if (!part_settings->adbbackup) {
 		InfoManager restore_info(part_settings->Backup_Folder + "/" + Backup_Name + ".info");
@@ -2845,15 +2679,10 @@ bool TWPartition::Restore_Image(PartitionSettings *part_settings) {
 	else
 		Full_FileName = part_settings->Backup_Folder + "/" + Backup_FileName;
 
-	if (Restore_File_System == "emmc") {
-		if (!part_settings->adbbackup)
-			part_settings->total_restore_size = (uint64_t)(TWFunc::Get_File_Size(Full_FileName));
-		if (!Raw_Read_Write(part_settings))
-			return false;
-	} else if (Restore_File_System == "mtd" || Restore_File_System == "bml") {
-		if (!Flash_Image_FI(Full_FileName, part_settings->progress))
-			return false;
-	}
+	if (!part_settings->adbbackup)
+		part_settings->total_restore_size = (uint64_t)(TWFunc::Get_File_Size(Full_FileName));
+	if (!Raw_Read_Write(part_settings))
+		return false;
 
 	if (part_settings->adbbackup) {
 		if (!twadbbu::Write_TWEOF())
@@ -3116,16 +2945,12 @@ bool TWPartition::Flash_Image(PartitionSettings *part_settings) {
 			gui_err("img_size_err=Size of image is larger than target device");
 			return false;
 		}
-		if (Backup_Method == BM_DD) {
-			if (!part_settings->adbbackup) {
-				if (Is_Sparse_Image(full_filename)) {
-					return Flash_Sparse_Image(full_filename);
-				}
+		if (!part_settings->adbbackup) {
+			if (Is_Sparse_Image(full_filename)) {
+				return Flash_Sparse_Image(full_filename);
 			}
-			return Raw_Read_Write(part_settings);
-		} else if (Backup_Method == BM_FLASH_UTILS) {
-			return Flash_Image_FI(full_filename, NULL);
 		}
+		return Raw_Read_Write(part_settings);
 	}
 
 	LOGERR("Unknown flash method for '%s'\n", Mount_Point.c_str());
@@ -3159,27 +2984,6 @@ bool TWPartition::Flash_Sparse_Image(const string& Filename) {
 	Command = "simg2img '" + Filename + "' '" + Actual_Block_Device + "'";
 	LOGINFO("Flash command: '%s'\n", Command.c_str());
 	TWFunc::Exec_Cmd(Command);
-	return true;
-}
-
-bool TWPartition::Flash_Image_FI(const string& Filename, ProgressTracking *progress) {
-	string Command;
-	unsigned long long file_size;
-
-	gui_msg(Msg("flashing=Flashing {1}...")(Display_Name));
-	if (progress) {
-		file_size = (unsigned long long)(TWFunc::Get_File_Size(Filename));
-		progress->SetPartitionSize(file_size);
-	}
-	// Sometimes flash image doesn't like to flash due to the first 2KB matching, so we erase first to ensure that it flashes
-	Command = "erase_image " + MTD_Name;
-	LOGINFO("Erase command: '%s'\n", Command.c_str());
-	TWFunc::Exec_Cmd(Command);
-	Command = "flash_image " + MTD_Name + " '" + Filename + "'";
-	LOGINFO("Flash command: '%s'\n", Command.c_str());
-	TWFunc::Exec_Cmd(Command);
-	if (progress)
-		progress->UpdateSize(file_size);
 	return true;
 }
 

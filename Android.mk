@@ -124,7 +124,7 @@ endif
 LOCAL_C_INCLUDES += external/boringssl/include external/libcxx/include
 
 LOCAL_STATIC_LIBRARIES += libguitwrp
-LOCAL_SHARED_LIBRARIES += libz libc libcutils libtar libblkid libminuitwrp libminadbd libmtdutils libtwadbbu libbootloader_message_twrp
+LOCAL_SHARED_LIBRARIES += libz libc libcutils libtar libblkid libminuitwrp libminadbd libtwadbbu libbootloader_message_twrp
 LOCAL_SHARED_LIBRARIES += libcrecovery libtwadbbu libtwrpdigest libc++ libaosprecovery
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
@@ -445,9 +445,6 @@ ifneq ($(TW_EXCLUDE_ENCRYPTED_BACKUPS), true)
 endif
 ifneq ($(TW_OEM_BUILD),true)
     TWRP_REQUIRED_MODULES += orscmd
-endif
-ifeq ($(BOARD_USES_BML_OVER_MTD),true)
-    TWRP_REQUIRED_MODULES += bml_over_mtd
 endif
 ifneq ($(TW_EXCLUDE_DEFAULT_USB_INIT), true)
     TWRP_REQUIRED_MODULES += init.recovery.usb.rc

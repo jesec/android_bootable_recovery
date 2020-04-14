@@ -40,9 +40,6 @@
 #include <android-base/unique_fd.h>
 #include <openssl/sha.h>
 
-#include "bmlutils/bmlutils.h"
-#include "mtdutils/mtdutils.h"
-
 #include "edify/expr.h"
 #include "otautil/paths.h"
 #include "otautil/print_sha1.h"

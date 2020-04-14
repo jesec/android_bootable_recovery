@@ -35,8 +35,6 @@
 #include <cutils/properties.h>
 
 #include "twcommon.h"
-#include "mtdutils/mounts.h"
-#include "mtdutils/mtdutils.h"
 
 #ifdef USE_MINZIP
 #include "minzip/SysUtil.h"
