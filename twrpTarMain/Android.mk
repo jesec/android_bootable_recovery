@@ -16,10 +16,6 @@ LOCAL_CFLAGS:= -g -c -W -DBUILD_TWRPTAR_MAIN
 LOCAL_C_INCLUDES += bionic
 
 LOCAL_STATIC_LIBRARIES := libc libtar_static libz
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_C_INCLUDES += external/stlport/stlport bionic/libstdc++/include
-    LOCAL_STATIC_LIBRARIES += libstlport_static
-endif
 LOCAL_STATIC_LIBRARIES += libc++_static
 
 LOCAL_C_INCLUDES += external/libselinux/include
@@ -57,10 +53,6 @@ LOCAL_CFLAGS:= -g -c -W -DBUILD_TWRPTAR_MAIN
 
 LOCAL_C_INCLUDES += bionic
 LOCAL_SHARED_LIBRARIES := libc libtar libz
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_C_INCLUDES += external/stlport/stlport bionic/libstdc++/include
-    LOCAL_SHARED_LIBRARIES += libstlport_static
-endif
 LOCAL_SHARED_LIBRARIES += libc++
 
 LOCAL_C_INCLUDES += external/libselinux/include

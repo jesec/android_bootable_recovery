@@ -160,11 +160,6 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libbootloader_message_twrp
 ifeq ($(PLATFORM_SDK_VERSION), 22)
     RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libc++.so
 endif
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    # These libraries are no longer present in M
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libstlport.so
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libgccdemangle.so
-endif
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 23; echo $$?),0)
 
     RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so \
@@ -381,26 +376,18 @@ ifneq ($(wildcard external/pcre/Android.mk),)
     RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libpcre.so
 endif
 ifeq ($(TW_INCLUDE_NTFS_3G),true)
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 22; echo $$?),0)
-    RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mount.ntfs
-    RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/fsck.ntfs
-    RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mkfs.ntfs
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libntfs-3g.so
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
-        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libfuse-lite.so
-    else
-        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libfuse.so
-    endif
+RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mount.ntfs
+RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/fsck.ntfs
+RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mkfs.ntfs
+RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libntfs-3g.so
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
+    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libfuse-lite.so
 else
-    RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/ntfs-3g
-    RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/ntfsfix
-    RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mkntfs
+    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libfuse.so
 endif
 endif
 ifeq ($(BOARD_HAS_NO_REAL_SDCARD),)
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 22; echo $$?),0)
-        RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/sgdisk
-    endif
+    RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/sgdisk
 endif
 ifeq ($(TWRP_INCLUDE_LOGCAT), true)
     ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 29; echo $$?),0)
@@ -521,17 +508,6 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 26; echo $$?),0)
 endif
 
 ifeq ($(BOARD_HAS_NO_REAL_SDCARD),)
-	ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-	    #prebuilt, static sgdisk
-	    include $(CLEAR_VARS)
-	    LOCAL_MODULE := sgdisk_static
-	    LOCAL_MODULE_STEM := sgdisk
-	    LOCAL_MODULE_TAGS := optional
-	    LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
-	    LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
-	    LOCAL_SRC_FILES := $(LOCAL_MODULE)
-	    include $(BUILD_PREBUILT)
-	endif
 	#parted
 	#include $(CLEAR_VARS)
 	#LOCAL_MODULE := parted

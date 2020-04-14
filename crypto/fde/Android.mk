@@ -8,11 +8,6 @@ LOCAL_SRC_FILES := cryptfs.cpp
 LOCAL_SHARED_LIBRARIES := libcrypto libhardware libcutils
 LOCAL_STATIC_LIBRARIES := libscrypttwrp_static
 LOCAL_C_INCLUDES := external/openssl/include $(commands_recovery_local_path)/crypto/scrypt/lib/crypto
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_C_INCLUDES += bionic external/stlport/stlport
-    LOCAL_SHARED_LIBRARIES += libstlport
-    LOCAL_CPPFLAGS := -std=c++11
-endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
     #8.0 or higher
@@ -63,11 +58,6 @@ LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 LOCAL_SRC_FILES := main.cpp cryptfs.cpp
 LOCAL_SHARED_LIBRARIES := libcrypto libhardware libcutils libc
 LOCAL_C_INCLUDES := external/openssl/include $(commands_recovery_local_path)/crypto/scrypt/lib/crypto
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_C_INCLUDES += bionic external/stlport/stlport
-    LOCAL_SHARED_LIBRARIES += libstlport
-    LOCAL_CPPFLAGS := -std=c++11
-endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
     #8.0 or higher

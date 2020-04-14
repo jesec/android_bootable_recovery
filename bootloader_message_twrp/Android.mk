@@ -19,13 +19,8 @@ LOCAL_CLANG := true
 LOCAL_SRC_FILES := bootloader_message.cpp
 LOCAL_MODULE := libbootloader_message_twrp
 LOCAL_C_INCLUDES += bionic $(LOCAL_PATH)/include
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 21; echo $$?),0)
-    LOCAL_C_INCLUDES += external/stlport/stlport
-    LOCAL_SHARED_LIBRARIES += libstlport
-else
-    LOCAL_C_INCLUDES += external/libcxx/include
-    LOCAL_SHARED_LIBRARIES += libc++
-endif
+LOCAL_C_INCLUDES += external/libcxx/include
+LOCAL_SHARED_LIBRARIES += libc++
 LOCAL_CFLAGS := -Werror -std=c++11
 # ignore bootloader's factory reset command even when written to /misc
 ifeq ($(TW_IGNORE_MISC_WIPE_DATA), true)

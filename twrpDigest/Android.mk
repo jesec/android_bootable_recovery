@@ -11,19 +11,9 @@ LOCAL_SRC_FILES = \
         twrpMD5.cpp \
         digest/md5/md5.c
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-        LOCAL_C_INCLUDES += external/stlport/stlport
-endif
-
 LOCAL_SHARED_LIBRARIES += libc
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-        LOCAL_SHARED_LIBRARIES += libstlport
-else
-        LOCAL_SHARED_LIBRARIES += libc++ libcrypto
-	LOCAL_SRC_FILES += \
-        	twrpSHA.cpp
-endif
-
+LOCAL_SHARED_LIBRARIES += libc++ libcrypto
+LOCAL_SRC_FILES += twrpSHA.cpp
 
 include $(BUILD_SHARED_LIBRARY)

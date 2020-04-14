@@ -77,9 +77,6 @@ ifeq ($(TW_INCLUDE_CRYPTO), true)
         LOCAL_MODULE := libvolddecrypt
         LOCAL_MODULE_TAGS := optional
         LOCAL_CFLAGS := -Wall
-        ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-            LOCAL_C_INCLUDES += external/stlport/stlport bionic bionic/libstdc++/include
-        endif
 
         ifneq ($(services),)
             ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 26; echo $$?),0)

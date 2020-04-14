@@ -5,9 +5,6 @@ LOCAL_MODULE := libtwadbbu
 LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS = -fno-strict-aliasing -D_LARGFILE_SOURCE #-D_DEBUG_ADB_BACKUP
 LOCAL_C_INCLUDES += bionic external/zlib
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_C_INCLUDES += external/stlport/stlport
-endif
 
 LOCAL_SRC_FILES = \
         libtwadbbu.cpp \
@@ -15,11 +12,7 @@ LOCAL_SRC_FILES = \
 
 LOCAL_SHARED_LIBRARIES += libz libc libtwrpdigest
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_SHARED_LIBRARIES += libstlport
-else
-    LOCAL_SHARED_LIBRARIES += libc++
-endif
+LOCAL_SHARED_LIBRARIES += libc++
 
 include $(BUILD_SHARED_LIBRARY)
 
@@ -30,12 +23,7 @@ LOCAL_SRC_FILES:= \
 
 LOCAL_SHARED_LIBRARIES += libz libtwadbbu
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_C_INCLUDES += external/stlport/stlport
-    LOCAL_SHARED_LIBRARIES += libstlport
-else
-    LOCAL_SHARED_LIBRARIES += libc++
-endif
+LOCAL_SHARED_LIBRARIES += libc++
 
 LOCAL_C_INCLUDES += bionic external/zlib
 LOCAL_CFLAGS:= -c -W

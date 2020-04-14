@@ -36,11 +36,6 @@ endif
 
 ifeq ($(PROJECT_PATH_AGREES),true)
 
-ifneq (,$(filter $(PLATFORM_SDK_VERSION), 21 22))
-# Make recovery domain permissive for TWRP
-    BOARD_SEPOLICY_UNION += twrp.te
-endif
-
 ifeq ($(CM_PLATFORM_SDK_VERSION),)
     CM_PLATFORM_SDK_VERSION := 0
 endif
@@ -119,28 +114,19 @@ LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/install/include
 
 LOCAL_C_INCLUDES += bionic
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_C_INCLUDES += external/stlport/stlport external/openssl/include
-    LOCAL_CFLAGS += -DUSE_FUSE_SIDELOAD22
+ifeq ($shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
+    LOCAL_C_INCLUDES += $(LOCAL_PATH)/fuse_sideload28/
 else
-    ifeq ($shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
-        LOCAL_C_INCLUDES += $(LOCAL_PATH)/fuse_sideload28/
-    else
-        LOCAL_C_FLAGS += -DUSE_OLD_LOAD_KEYS
-        LOCAL_C_INCLUDES += $(LOCAL_PATH)/fuse_sideload/include \
-                            $(LOCAL_PATH)/install/include
-    endif
-    LOCAL_C_INCLUDES += external/boringssl/include external/libcxx/include
+    LOCAL_C_FLAGS += -DUSE_OLD_LOAD_KEYS
+    LOCAL_C_INCLUDES += $(LOCAL_PATH)/fuse_sideload/include \
+                        $(LOCAL_PATH)/install/include
 endif
+LOCAL_C_INCLUDES += external/boringssl/include external/libcxx/include
 
 LOCAL_STATIC_LIBRARIES += libguitwrp
 LOCAL_SHARED_LIBRARIES += libz libc libcutils libtar libblkid libminuitwrp libminadbd libmtdutils libtwadbbu libbootloader_message_twrp
 LOCAL_SHARED_LIBRARIES += libcrecovery libtwadbbu libtwrpdigest libc++ libaosprecovery
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_SHARED_LIBRARIES += libstlport
-    LOCAL_CFLAGS += -DTW_NO_SHA2_LIBRARY
-endif
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
     LOCAL_SHARED_LIBRARIES += libmincrypttwrp
     LOCAL_C_INCLUDES += $(LOCAL_PATH)/libmincrypt/includes
@@ -391,9 +377,6 @@ endif
 ifneq ($(TARGET_RECOVERY_INITRC),)
     TW_EXCLUDE_DEFAULT_USB_INIT := true
 endif
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 22; echo $$?),0)
-    LOCAL_CFLAGS += -DTW_USE_NEW_MINADBD
-endif
 ifneq ($(TW_DEFAULT_LANGUAGE),)
     LOCAL_CFLAGS += -DTW_DEFAULT_LANGUAGE=$(TW_DEFAULT_LANGUAGE)
 else
@@ -461,11 +444,7 @@ ifneq ($(TW_NO_EXFAT), true)
     endif
 endif
 ifeq ($(BOARD_HAS_NO_REAL_SDCARD),)
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 22; echo $$?),0)
-        TWRP_REQUIRED_MODULES += sgdisk
-    else
-        TWRP_REQUIRED_MODULES += sgdisk_static
-    endif
+    TWRP_REQUIRED_MODULES += sgdisk
 endif
 ifneq ($(TW_EXCLUDE_ENCRYPTED_BACKUPS), true)
     TWRP_REQUIRED_MODULES += openaes openaes_license
@@ -503,17 +482,10 @@ endif
 LOCAL_CFLAGS += -DTWRES=\"$(TWRES_PATH)\"
 LOCAL_CFLAGS += -DTWHTCD_PATH=\"$(TWHTCD_PATH)\"
 ifeq ($(TW_INCLUDE_NTFS_3G),true)
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 22; echo $$?),0)
-    TWRP_REQUIRED_MODULES += \
-        mount.ntfs \
-        fsck.ntfs \
-        mkfs.ntfs
-else
-    TWRP_REQUIRED_MODULES += \
-        ntfs-3g \
-        ntfsfix \
-        mkntfs
-endif
+TWRP_REQUIRED_MODULES += \
+    mount.ntfs \
+    fsck.ntfs \
+    mkfs.ntfs
 endif
 ifeq ($(TARGET_USERIMAGES_USE_F2FS), true)
 ifeq ($(shell test $(CM_PLATFORM_SDK_VERSION) -ge 3; echo $$?),0)
@@ -633,17 +605,12 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
     else
         LOCAL_SHARED_LIBRARIES += libcrypto libbase
     endif
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-        LOCAL_SRC_FILES := fuse_sideload22.cpp
-        LOCAL_CFLAGS += -DUSE_FUSE_SIDELOAD22
-    else
-        # ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
-        LOCAL_SRC_FILES := fuse_sideload28/fuse_sideload.cpp
-        # else
-            # LOCAL_SRC_FILES := fuse_sideload/fuse_sideload.cpp \
-                fuse_sideload/fuse_provider.cpp
-        # endif
-    endif
+    # ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
+    LOCAL_SRC_FILES := fuse_sideload28/fuse_sideload.cpp
+    # else
+        # LOCAL_SRC_FILES := fuse_sideload/fuse_sideload.cpp \
+            fuse_sideload/fuse_provider.cpp
+    # endif
     include $(BUILD_SHARED_LIBRARY)
 endif
 
@@ -702,13 +669,7 @@ LOCAL_SHARED_LIBRARIES += libbase libbootloader_message libcrypto libext4_utils 
     libfs_mgr libfusesideload libhidl-gen-utils libhidlbase libhidltransport \
     liblog libselinux libtinyxml2 libutils libz libziparchive libcutils
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
-    LOCAL_SHARED_LIBRARIES += libstdc++ libstlport
-    LOCAL_C_INCLUDES += bionic external/stlport/stlport
-    LOCAL_CFLAGS += -DUSE_FUSE_SIDELOAD22
-else
-    LOCAL_SHARED_LIBRARIES += libc++
-endif
+LOCAL_SHARED_LIBRARIES += libc++
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
     LOCAL_SHARED_LIBRARIES += libmincrypttwrp
     LOCAL_C_INCLUDES += $(LOCAL_PATH)/libmincrypt/includes
@@ -801,18 +762,12 @@ ifeq ($(wildcard system/core/uncrypt/Android.mk),)
     #include $(commands_TWRP_local_path)/uncrypt/Android.mk
 endif
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 22; echo $$?),0)
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 26; echo $$?),0)
-        TARGET_GLOBAL_CFLAGS += -DTW_USE_MINUI_WITH_DATA
-        CLANG_TARGET_GLOBAL_CFLAGS += -DTW_USE_MINUI_WITH_DATA
-    endif
-    include $(commands_TWRP_local_path)/minadbd/Android.mk \
-        $(commands_TWRP_local_path)/minui/Android.mk
-else
-    TARGET_GLOBAL_CFLAGS += -DTW_USE_MINUI_21
-    include $(commands_TWRP_local_path)/minadbd21/Android.mk \
-        $(commands_TWRP_local_path)/minui21/Android.mk
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 26; echo $$?),0)
+    TARGET_GLOBAL_CFLAGS += -DTW_USE_MINUI_WITH_DATA
+    CLANG_TARGET_GLOBAL_CFLAGS += -DTW_USE_MINUI_WITH_DATA
 endif
+include $(commands_TWRP_local_path)/minadbd/Android.mk \
+    $(commands_TWRP_local_path)/minui/Android.mk
 
     # $(commands_TWRP_local_path)/otautil/Android.mk \
 
