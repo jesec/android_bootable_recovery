@@ -267,9 +267,6 @@ endif
 ifeq ($(TW_NO_USB_STORAGE), true)
     LOCAL_CFLAGS += -DTW_NO_USB_STORAGE
 endif
-ifeq ($(TW_INCLUDE_INJECTTWRP), true)
-    LOCAL_CFLAGS += -DTW_INCLUDE_INJECTTWRP
-endif
 ifeq ($(TW_INCLUDE_BLOBPACK), true)
     LOCAL_CFLAGS += -DTW_INCLUDE_BLOBPACK
 endif
@@ -454,9 +451,6 @@ ifneq ($(TW_OEM_BUILD),true)
 endif
 ifeq ($(BOARD_USES_BML_OVER_MTD),true)
     TWRP_REQUIRED_MODULES += bml_over_mtd
-endif
-ifeq ($(TW_INCLUDE_INJECTTWRP), true)
-    TWRP_REQUIRED_MODULES += injecttwrp
 endif
 ifneq ($(TW_EXCLUDE_DEFAULT_USB_INIT), true)
     TWRP_REQUIRED_MODULES += init.recovery.usb.rc
@@ -764,8 +758,7 @@ include $(commands_TWRP_local_path)/minadbd/Android.mk \
     # $(commands_TWRP_local_path)/otautil/Android.mk \
 
 #includes for TWRP
-include $(commands_TWRP_local_path)/injecttwrp/Android.mk \
-    $(commands_TWRP_local_path)/gui/Android.mk \
+include $(commands_TWRP_local_path)/gui/Android.mk \
     $(commands_TWRP_local_path)/prebuilt/Android.mk \
     $(commands_TWRP_local_path)/pigz/Android.mk \
     $(commands_TWRP_local_path)/libtar/Android.mk \

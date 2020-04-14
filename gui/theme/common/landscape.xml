@@ -445,13 +445,6 @@
 			</checkbox>
 
 			<checkbox>
-				<condition var1="tw_has_injecttwrp" var2="1"/>
-				<placement x="%col1_x_right%" y="%row10a_y%"/>
-				<text>{@inject_twrp_chk=Inject TWRP after install}</text>
-				<data variable="tw_inject_after_zip"/>
-			</checkbox>
-
-			<checkbox>
 				<placement x="%col1_x_right%" y="%row12_y%"/>
 				<text>{@install_reboot_chk=Reboot after installation is complete}</text>
 				<data variable="tw_install_reboot"/>
@@ -3384,18 +3377,6 @@
 				<listitem name="{@fix_context_btn=Fix Contexts}">
 					<condition var1="tw_has_data_media" var2="1"/>
 					<action function="page">fixcontexts</action>
-				</listitem>
-				<listitem name="{@inject_twrp_btn=Inject TWRP}">
-					<condition var1="tw_has_injecttwrp" var2="1"/>
-					<actions>
-						<action function="set">tw_back=advanced</action>
-						<action function="set">tw_action=reinjecttwrp</action>
-						<action function="set">tw_text1={@inject_twrp_confirm=Re-Inject TWRP?}</action>
-						<action function="set">tw_action_text1={@injecting_twrp=Re-Injecting TWRP...}</action>
-						<action function="set">tw_complete_text1={@inject_twrp_complete=TWRP Injection Complete}</action>
-						<action function="set">tw_slider_text={@swipe_to_confirm=Swipe to Confirm}</action>
-						<action function="page">confirm_action</action>
-					</actions>
 				</listitem>
 				<listitem name="{@install_twrp_ramdisk=Install Recovery Ramdisk}">
 					<conditions>

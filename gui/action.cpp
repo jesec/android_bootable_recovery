@@ -216,7 +216,6 @@ GUIAction::GUIAction(xml_node<>* node)
 		ADD_ACTION(partitionsd);
 		ADD_ACTION(cmd);
 		ADD_ACTION(terminalcommand);
-		ADD_ACTION(reinjecttwrp);
 		ADD_ACTION(decrypt);
 		ADD_ACTION(adbsideload);
 		ADD_ACTION(openrecoveryscript);
@@ -1001,25 +1000,6 @@ int GUIAction::fileexists(std::string arg)
 	return 0;
 }
 
-void GUIAction::reinject_after_flash()
-{
-	if (DataManager::GetIntValue(TW_HAS_INJECTTWRP) == 1 && DataManager::GetIntValue(TW_INJECT_AFTER_ZIP) == 1) {
-		gui_msg("injecttwrp=Injecting TWRP into boot image...");
-		if (simulate) {
-			simulate_progress_bar();
-		} else {
-			TWPartition* Boot = PartitionManager.Find_Partition_By_Path("/boot");
-			if (Boot == NULL || Boot->Current_File_System != "emmc")
-				TWFunc::Exec_Cmd("injecttwrp --dump /tmp/backup_recovery_ramdisk.img /tmp/injected_boot.img --flash");
-			else {
-				string injectcmd = "injecttwrp --dump /tmp/backup_recovery_ramdisk.img /tmp/injected_boot.img --flash bd=" + Boot->Actual_Block_Device;
-				TWFunc::Exec_Cmd(injectcmd);
-			}
-			gui_msg("done=Done.");
-		}
-	}
-}
-
 int GUIAction::flash(std::string arg)
 {
 	int i, ret_val = 0, wipe_cache = 0;
@@ -1050,7 +1030,6 @@ int GUIAction::flash(std::string arg)
 		PartitionManager.Wipe_By_Path("/cache");
 	}
 
-	reinject_after_flash();
 	PartitionManager.Update_System_Details();
 	operation_end(ret_val);
 	// This needs to be after the operation_end call so we change pages before we change variables that we display on the screen
@@ -1413,22 +1392,6 @@ int GUIAction::killterminal(std::string arg __unused)
 	return 0;
 }
 
-int GUIAction::reinjecttwrp(std::string arg __unused)
-{
-	int op_status = 0;
-	operation_start("ReinjectTWRP");
-	gui_msg("injecttwrp=Injecting TWRP into boot image...");
-	if (simulate) {
-		simulate_progress_bar();
-	} else {
-		TWFunc::Exec_Cmd("injecttwrp --dump /tmp/backup_recovery_ramdisk.img /tmp/injected_boot.img --flash");
-		gui_msg("done=Done.");
-	}
-
-	operation_end(op_status);
-	return 0;
-}
-
 int GUIAction::checkbackupname(std::string arg __unused)
 {
 	int op_status = 0;
@@ -1530,7 +1493,6 @@ int GUIAction::adbsideload(std::string arg __unused)
 		}
 		property_set("ctl.start", "adbd");
 		TWFunc::Toggle_MTP(mtp_was_enabled);
-		reinject_after_flash();
 		operation_end(ret);
 	}
 	return 0;
