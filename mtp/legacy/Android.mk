@@ -35,8 +35,6 @@ LOCAL_SHARED_LIBRARIES += libz libc libusbhost libdl libcutils libutils libaospr
 ifneq ($(TW_MTP_DEVICE),)
 	LOCAL_CFLAGS += -DUSB_MTP_DEVICE=$(TW_MTP_DEVICE)
 endif
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 25; echo $$?),0)
-    LOCAL_CFLAGS += -DHAS_USBHOST_TIMEOUT
-endif
+LOCAL_CFLAGS += -DHAS_USBHOST_TIMEOUT
 
 include $(BUILD_SHARED_LIBRARY)

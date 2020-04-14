@@ -44,9 +44,6 @@ constexpr size_t BITS_TO_LONGS(size_t bits) {
 struct FdInfo {
   android::base::unique_fd fd;
   ev_callback cb;
-#ifdef TW_USE_MINUI_WITH_DATA
-  void* data;
-#endif
 };
 
 static android::base::unique_fd g_epoll_fd;
@@ -183,11 +180,7 @@ int ev_get_input(int fd, uint32_t epevents, input_event* ev) {
     return -1;
 }
 
-#ifdef TW_USE_MINUI_WITH_DATA
-int ev_sync_key_state(ev_set_key_callback set_key_cb, void* data) {
-#else
 int ev_sync_key_state(const ev_set_key_callback& set_key_cb) {
-#endif
   // Use unsigned long to match ioctl's parameter type.
   unsigned long ev_bits[BITS_TO_LONGS(EV_MAX)];    // NOLINT
   unsigned long key_bits[BITS_TO_LONGS(KEY_MAX)];  // NOLINT
@@ -208,11 +201,7 @@ int ev_sync_key_state(const ev_set_key_callback& set_key_cb) {
 
     for (int code = 0; code <= KEY_MAX; code++) {
       if (test_bit(code, key_bits)) {
-#ifdef TW_USE_MINUI_WITH_DATA
-        set_key_cb(code, 1, data);
-#else
         set_key_cb(code, 1);
-#endif
       }
     }
   }

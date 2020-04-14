@@ -40,15 +40,13 @@ LOCAL_SRC_FILES = \
     mtp_MtpDatabase.cpp \
     node.cpp
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 25; echo $$?),0)
-    LOCAL_CFLAGS += -D_FFS_DEVICE
-    LOCAL_SHARED_LIBRARIES += libasyncio
-    LOCAL_SRC_FILES += \
-        MtpDescriptors.cpp \
-        MtpFfsHandle.cpp \
-        MtpFfsCompatHandle.cpp \
-        PosixAsyncIO.cpp
-endif
+LOCAL_CFLAGS += -D_FFS_DEVICE
+LOCAL_SHARED_LIBRARIES += libasyncio
+LOCAL_SRC_FILES += \
+    MtpDescriptors.cpp \
+    MtpFfsHandle.cpp \
+    MtpFfsCompatHandle.cpp \
+    PosixAsyncIO.cpp
 
 LOCAL_SHARED_LIBRARIES += libz \
                           libc \
@@ -64,8 +62,6 @@ LOCAL_C_INCLUDES += bootable/recovery/twrplibusbhost/include
 ifneq ($(TW_MTP_DEVICE),)
 	LOCAL_CFLAGS += -DUSB_MTP_DEVICE=$(TW_MTP_DEVICE)
 endif
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 25; echo $$?),0)
-    LOCAL_CFLAGS += -DHAS_USBHOST_TIMEOUT
-endif
+LOCAL_CFLAGS += -DHAS_USBHOST_TIMEOUT
 
 include $(BUILD_SHARED_LIBRARY)

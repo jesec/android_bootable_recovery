@@ -486,9 +486,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
     endif
 endif
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 25; echo $$?),0)
-    TWRP_REQUIRED_MODULES += file_contexts_text
-endif
+TWRP_REQUIRED_MODULES += file_contexts_text
 
 ifeq ($(BOARD_CACHEIMAGE_PARTITION_SIZE),)
     TWRP_REQUIRED_MODULES += recovery-persist recovery-refresh
@@ -687,10 +685,6 @@ include \
     $(commands_TWRP_local_path)/updater/Android.mk \
     $(commands_TWRP_local_path)/bootloader_message_twrp/Android.mk
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -le 25; echo $$?),0)
-include $(commands_TWRP_local_path)/bootloader_message/Android.mk
-endif
-
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
     include $(commands_TWRP_local_path)/mtp/ffs/Android.mk
 else
@@ -701,10 +695,6 @@ ifeq ($(wildcard system/core/uncrypt/Android.mk),)
     #include $(commands_TWRP_local_path)/uncrypt/Android.mk
 endif
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 26; echo $$?),0)
-    TARGET_GLOBAL_CFLAGS += -DTW_USE_MINUI_WITH_DATA
-    CLANG_TARGET_GLOBAL_CFLAGS += -DTW_USE_MINUI_WITH_DATA
-endif
 include $(commands_TWRP_local_path)/minadbd/Android.mk \
     $(commands_TWRP_local_path)/minui/Android.mk
 

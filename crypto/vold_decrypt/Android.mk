@@ -60,16 +60,6 @@ ifeq ($(TW_INCLUDE_CRYPTO), true)
                 fi; \
             )
 
-        ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 26; echo $$?),0)
-            # Truncate service_name to max 16 characters
-            LOCAL_POST_INSTALL_CMD += \
-                $(foreach item, $(rc_files), \
-                    if [ -f "$(TARGET_ROOT_OUT)/$(item)" ]; then \
-                        sed -i 's/\([ \t]*service[ \t]*\)\(.\{16\}\).*\([ \t].*\)/\1\2\3/' "$(TARGET_ROOT_OUT)/$(item)"; \
-                    fi; \
-                )
-        endif
-
         include $(BUILD_PREBUILT)
 
 
@@ -79,14 +69,7 @@ ifeq ($(TW_INCLUDE_CRYPTO), true)
         LOCAL_CFLAGS := -Wall
 
         ifneq ($(services),)
-            ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 26; echo $$?),0)
-                # Truncate service_name to max 12 characters due to the 4 character prefix
-                truncated_services := $(foreach item,$(services),$(shell echo -n "$(item)" | sed 's/\(.\{12\}\).*/\1/'))
-                LOCAL_CFLAGS += -DTW_CRYPTO_SYSTEM_VOLD_SERVICES='"$(truncated_services)"'
-                LOCAL_CFLAGS += -D_USING_SHORT_SERVICE_NAMES
-            else
-                LOCAL_CFLAGS += -DTW_CRYPTO_SYSTEM_VOLD_SERVICES='"$(services)"'
-            endif
+            LOCAL_CFLAGS += -DTW_CRYPTO_SYSTEM_VOLD_SERVICES='"$(services)"'
         endif
 
         ifneq ($(partitions),)
