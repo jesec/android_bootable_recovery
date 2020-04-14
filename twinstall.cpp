@@ -43,9 +43,7 @@
 #include <ziparchive/zip_archive.h>
 #endif
 #include "zipwrap.hpp"
-#ifdef USE_OLD_VERIFIER
-#include "verifier24/verifier.h"
-#elif USE_28_VERIFIER
+#ifdef USE_28_VERIFIER
 #include "verifier28/verifier.h"
 #else
 #include "install/verifier.h"

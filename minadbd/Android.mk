@@ -37,17 +37,11 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/.. system/core/adb
 #LOCAL_WHOLE_STATIC_LIBRARIES := libadbd
 LOCAL_SHARED_LIBRARIES := libadbd libbase liblog libcutils libc
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/libmincrypt/includes
-    LOCAL_SHARED_LIBRARIES += libmincrypttwrp
-    LOCAL_CFLAGS += -DUSE_MINCRYPT
-else
-    LOCAL_SHARED_LIBRARIES += libcrypto \
-    $(if $(WITH_CRYPTO_UTILS),libcrypto_utils)
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 27; echo $$?),0)
-        # Needed in Android 9.0
-        LOCAL_WHOLE_STATIC_LIBRARIES += libasyncio
-    endif
+LOCAL_SHARED_LIBRARIES += libcrypto \
+$(if $(WITH_CRYPTO_UTILS),libcrypto_utils)
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 27; echo $$?),0)
+    # Needed in Android 9.0
+    LOCAL_WHOLE_STATIC_LIBRARIES += libasyncio
 endif
 
 ifeq ($shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
@@ -82,17 +76,11 @@ else
     LOCAL_C_INCLUDES += $(LOCAL_PATH)/../fuse_sideload/include
 endif
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/libmincrypt/includes
-    LOCAL_SHARED_LIBRARIES += libmincrypttwrp
-    LOCAL_CFLAGS += -DUSE_MINCRYPT
-else
-    LOCAL_SHARED_LIBRARIES += libcrypto \
-    $(if $(WITH_CRYPTO_UTILS),libcrypto_utils)
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 27; echo $$?),0)
-        # Needed in Android 9.0
-        LOCAL_WHOLE_STATIC_LIBRARIES += libasyncio
-    endif
+LOCAL_SHARED_LIBRARIES += libcrypto \
+$(if $(WITH_CRYPTO_UTILS),libcrypto_utils)
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 27; echo $$?),0)
+    # Needed in Android 9.0
+    LOCAL_WHOLE_STATIC_LIBRARIES += libasyncio
 endif
 
 include $(BUILD_STATIC_LIBRARY)

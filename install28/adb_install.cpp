@@ -32,10 +32,7 @@
 #include "cutils/properties.h"
 
 #include "common.h"
-#ifdef USE_OLD_VERIFIER
-#include "verifier24/verifier.h"
-#include "ui.h"
-#elif USE_28_VERIFIER
+#ifdef USE_28_VERIFIER
 #include "verifier28/verifier.h"
 #include "verifier28/adb_install.h"
 #include "verifier28/ui.h"

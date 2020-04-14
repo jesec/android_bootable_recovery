@@ -34,11 +34,7 @@
 #include <ziparchive/zip_archive.h>
 #include <vintf/VintfObjectRecovery.h>
 #endif
-#ifdef USE_OLD_VERIFIER
-#include "verifier24/verifier.h"
-#else
 #include "install/install.h"
-#endif
 
 #ifdef AB_OTA_UPDATER
 

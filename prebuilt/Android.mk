@@ -22,37 +22,33 @@ else
     RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/sh
 endif
 RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 23; echo $$?),0)
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 29; echo $$?),0)
+    RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/system/bin/grep
+else
+    RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/grep
+endif
+LOCAL_POST_INSTALL_CMD += $(hide) if [ -e "$(TARGET_RECOVERY_ROOT_OUT)/sbin/egrep" ]; then \
+                            rm $(TARGET_RECOVERY_ROOT_OUT)/sbin/egrep; fi; ln -s $(TARGET_RECOVERY_ROOT_OUT)/sbin/grep $(TARGET_RECOVERY_ROOT_OUT)/sbin/egrep; \
+                            if [ -e "$(TARGET_RECOVERY_ROOT_OUT)/sbin/fgrep" ]; then \
+                            rm $(TARGET_RECOVERY_ROOT_OUT)/sbin/fgrep; fi; ln -s $(TARGET_RECOVERY_ROOT_OUT)/sbin/grep $(TARGET_RECOVERY_ROOT_OUT)/sbin/fgrep;
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
+    RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/dd
+endif
+ifneq ($(wildcard external/zip/Android.mk),)
+    RELINK_SOURCE_FILES += $(TARGET_OUT_OPTIONAL_EXECUTABLES)/zip
+endif
+ifneq ($(wildcard external/unzip/Android.mk),)
+    RELINK_SOURCE_FILES += $(TARGET_OUT_OPTIONAL_EXECUTABLES)/unzip
+endif
+ifneq ($(wildcard system/core/libziparchive/Android.bp),)
     ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 29; echo $$?),0)
-        RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/system/bin/grep
+        RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/system/bin/unzip
     else
-        RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/grep
+        RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/unzip
     endif
-    LOCAL_POST_INSTALL_CMD += $(hide) if [ -e "$(TARGET_RECOVERY_ROOT_OUT)/sbin/egrep" ]; then \
-                                rm $(TARGET_RECOVERY_ROOT_OUT)/sbin/egrep; fi; ln -s $(TARGET_RECOVERY_ROOT_OUT)/sbin/grep $(TARGET_RECOVERY_ROOT_OUT)/sbin/egrep; \
-                                if [ -e "$(TARGET_RECOVERY_ROOT_OUT)/sbin/fgrep" ]; then \
-                                rm $(TARGET_RECOVERY_ROOT_OUT)/sbin/fgrep; fi; ln -s $(TARGET_RECOVERY_ROOT_OUT)/sbin/grep $(TARGET_RECOVERY_ROOT_OUT)/sbin/fgrep;
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 23; echo $$?),0)
-        ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
-            RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/dd
-        endif
-    endif
-    ifneq ($(wildcard external/zip/Android.mk),)
-        RELINK_SOURCE_FILES += $(TARGET_OUT_OPTIONAL_EXECUTABLES)/zip
-    endif
-    ifneq ($(wildcard external/unzip/Android.mk),)
-        RELINK_SOURCE_FILES += $(TARGET_OUT_OPTIONAL_EXECUTABLES)/unzip
-    endif
-    ifneq ($(wildcard system/core/libziparchive/Android.bp),)
-        ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 29; echo $$?),0)
-            RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/system/bin/unzip
-        else
-            RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/unzip
-        endif
-    endif
-    ifneq ($(wildcard external/one-true-awk/Android.bp),)
-        RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/awk
-    endif
+endif
+ifneq ($(wildcard external/one-true-awk/Android.bp),)
+    RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/awk
 endif
 
 RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/pigz
@@ -153,44 +149,22 @@ RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libutil-linux.so
 RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libblkid.so
 RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libfusesideload.so
 RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libbootloader_message_twrp.so
-ifeq ($(PLATFORM_SDK_VERSION), 22)
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libc++.so
-endif
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 23; echo $$?),0)
 
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so \
-    $(if $(WITH_CRYPTO_UTILS),$(TARGET_OUT_SHARED_LIBRARIES)/libcrypto_utils.so)
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libpackagelistparser.so
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/liblzma.so
-endif
-ifneq (,$(filter $(PLATFORM_SDK_VERSION), 21 22))
-    # libraries from lollipop
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libbacktrace.so
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libunwind.so
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libunwind-ptrace.so
-    # Dynamically loaded by lollipop libc and may prevent unmounting system if it is not present in sbin
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libnetd_client.so
+RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so \
+$(if $(WITH_CRYPTO_UTILS),$(TARGET_OUT_SHARED_LIBRARIES)/libcrypto_utils.so)
+RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libpackagelistparser.so
+RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/liblzma.so
+# Android M libraries
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 29; echo $$?),0)
+    RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/system/lib64/libbacktrace.so
 else
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 23; echo $$?),0)
-        # Android M libraries
-        ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 29; echo $$?),0)
-            RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/system/lib64/libbacktrace.so
-        else
-            RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libbacktrace.so
-        endif
-        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libunwind.so
-        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libbase.so
-        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libc++.so
-        # Dynamically loaded by libc and may prevent unmounting system if it is not present in sbin
-        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libnetd_client.so
-    else
-        # Not available in lollipop
-        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcorkscrew.so
-    endif
+    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libbacktrace.so
 endif
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
-    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libmincrypttwrp.so
-endif
+RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libunwind.so
+RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libbase.so
+RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libc++.so
+# Dynamically loaded by libc and may prevent unmounting system if it is not present in sbin
+RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libnetd_client.so
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
     RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/system/bin/toolbox
 else
@@ -341,15 +315,9 @@ ifeq ($(TARGET_USERIMAGES_USE_F2FS), true)
                 RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/sload.f2fs
             endif
         endif
-    else ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 24; echo $$?),0)
-        RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mkfs.f2fs
-        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libf2fs.so
-    else ifeq ($(shell test $(PLATFORM_SDK_VERSION) -eq 23; echo $$?),0)
-        RELINK_SOURCE_FILES += $(TARGET_RECOVERY_ROOT_OUT)/sbin/mkfs.f2fs
-    else ifneq (,$(filter $(PLATFORM_SDK_VERSION), 21 22))
-        RELINK_SOURCE_FILES += $(TARGET_ROOT_OUT_SBIN)/mkfs.f2fs
     else
         RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/mkfs.f2fs
+        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libf2fs.so
     endif
     RELINK_SOURCE_FILES += $(TARGET_OUT_EXECUTABLES)/fsck.f2fs
 endif
@@ -394,9 +362,7 @@ ifeq ($(TWRP_INCLUDE_LOGCAT), true)
         RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libsysutils.so
         RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libnl.so
     endif
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 24; echo $$?),0)
-        RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libpcrecpp.so
-    endif
+    RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libpcrecpp.so
     ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
         RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/liblogcat.so
         RELINK_SOURCE_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/libcap.so

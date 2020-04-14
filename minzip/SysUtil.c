@@ -68,12 +68,7 @@ static bool sysMapFD(int fd, MemMapping* pMap) {
     if (getFileStartAndLength(fd, &start, &length) < 0)
         return -1;
 
-#if (PLATFORM_SDK_VERSION >= 21)
     memPtr = mmap64(NULL, length, PROT_READ, MAP_PRIVATE, fd, start);
-#else
-    // Older versions of Android do not have mmap64 so we will just use mmap instead
-    memPtr = mmap(NULL, length, PROT_READ, MAP_PRIVATE, fd, start);
-#endif
     if (memPtr == MAP_FAILED) {
         LOGE("mmap(%d, R, PRIVATE, %d, 0) failed: %s\n", (int) length, fd, strerror(errno));
         return false;
@@ -136,12 +131,7 @@ static int sysMapBlockFile(FILE* mapf, MemMapping* pMap)
 
     // Reserve enough contiguous address space for the whole file.
     unsigned char* reserve;
-#if (PLATFORM_SDK_VERSION >= 21)
     reserve = mmap64(NULL, blocks * blksize, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
-#else
-    // Older versions of Android do not have mmap64 so we will just use mmap instead
-    reserve = mmap(NULL, blocks * blksize, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
-#endif
     if (reserve == MAP_FAILED) {
         LOGE("failed to reserve address space: %s\n", strerror(errno));
         free(pMap->ranges);
@@ -172,12 +162,7 @@ static int sysMapBlockFile(FILE* mapf, MemMapping* pMap)
           success = false;
           break;
         }
-#if (PLATFORM_SDK_VERSION >= 21)
         void* addr = mmap64(next, (end-start)*blksize, PROT_READ, MAP_PRIVATE | MAP_FIXED, fd, ((off64_t)start)*blksize);
-#else
-        // Older versions of Android do not have mmap64 so we will just use mmap instead
-        void* addr = mmap(next, (end-start)*blksize, PROT_READ, MAP_PRIVATE | MAP_FIXED, fd, ((off64_t)start)*blksize);
-#endif
         if (addr == MAP_FAILED) {
             LOGE("failed to map block %d: %s\n", i, strerror(errno));
             success = false;

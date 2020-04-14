@@ -127,23 +127,15 @@ LOCAL_STATIC_LIBRARIES += libguitwrp
 LOCAL_SHARED_LIBRARIES += libz libc libcutils libtar libblkid libminuitwrp libminadbd libtwadbbu libbootloader_message_twrp
 LOCAL_SHARED_LIBRARIES += libcrecovery libtwadbbu libtwrpdigest libc++ libaosprecovery
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
-    LOCAL_SHARED_LIBRARIES += libmincrypttwrp
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/libmincrypt/includes
-    LOCAL_CFLAGS += -DUSE_OLD_VERIFIER
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -le 29; echo $$?),0)
+    LOCAL_C_INCLUDES += $(LOCAL_PATH)/verifier28/
+    LOCAL_CFLAGS += -DUSE_28_VERIFIER
 else
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -le 29; echo $$?),0)
-        LOCAL_C_INCLUDES += $(LOCAL_PATH)/verifier28/
-        LOCAL_CFLAGS += -DUSE_28_VERIFIER
-    else
-        LOCAL_C_INCLUDES += $(LOCAL_PATH)/install/include
-    endif
-    LOCAL_SHARED_LIBRARIES += libcrypto
+    LOCAL_C_INCLUDES += $(LOCAL_PATH)/install/include
 endif
+LOCAL_SHARED_LIBRARIES += libcrypto
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 24; echo $$?),0)
-    LOCAL_SHARED_LIBRARIES += libbase
-endif
+LOCAL_SHARED_LIBRARIES += libbase
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
     ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
@@ -307,13 +299,11 @@ ifeq ($(TW_INCLUDE_CRYPTO), true)
     LOCAL_CFLAGS += -DTW_INCLUDE_CRYPTO
     LOCAL_SHARED_LIBRARIES += libcryptfsfde libgpt_twrp
     LOCAL_C_INCLUDES += external/boringssl/src/include
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 24; echo $$?),0)
-        TW_INCLUDE_CRYPTO_FBE := true
-        LOCAL_CFLAGS += -DTW_INCLUDE_FBE
-        LOCAL_SHARED_LIBRARIES += libe4crypt
-        ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
-            LOCAL_CFLAGS += -DTW_INCLUDE_FBE_METADATA_DECRYPT
-        endif
+    TW_INCLUDE_CRYPTO_FBE := true
+    LOCAL_CFLAGS += -DTW_INCLUDE_FBE
+    LOCAL_SHARED_LIBRARIES += libe4crypt
+    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
+        LOCAL_CFLAGS += -DTW_INCLUDE_FBE_METADATA_DECRYPT
     endif
     ifneq ($(TW_CRYPTO_USE_SYSTEM_VOLD),)
     ifneq ($(TW_CRYPTO_USE_SYSTEM_VOLD),false)
@@ -384,13 +374,9 @@ ifneq ($(TW_OVERRIDE_SYSTEM_PROPS),)
     LOCAL_CFLAGS += -DTW_OVERRIDE_SYSTEM_PROPS=$(TW_OVERRIDE_SYSTEM_PROPS)
 endif
 ifneq ($(TW_INCLUDE_LIBRESETPROP),)
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
-        $(warning libresetprop is not available for android < 7)
-    else
-        LOCAL_SHARED_LIBRARIES += libresetprop
-        LOCAL_C_INCLUDES += external/magisk-prebuilt/include
-        LOCAL_CFLAGS += -DTW_INCLUDE_LIBRESETPROP
-    endif
+    LOCAL_SHARED_LIBRARIES += libresetprop
+    LOCAL_C_INCLUDES += external/magisk-prebuilt/include
+    LOCAL_CFLAGS += -DTW_INCLUDE_LIBRESETPROP
 endif
 
 TWRP_REQUIRED_MODULES += \
@@ -504,10 +490,8 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 25; echo $$?),0)
     TWRP_REQUIRED_MODULES += file_contexts_text
 endif
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 24; echo $$?),0)
-    ifeq ($(BOARD_CACHEIMAGE_PARTITION_SIZE),)
-        TWRP_REQUIRED_MODULES += recovery-persist recovery-refresh
-    endif
+ifeq ($(BOARD_CACHEIMAGE_PARTITION_SIZE),)
+    TWRP_REQUIRED_MODULES += recovery-persist recovery-refresh
 endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
@@ -535,37 +519,33 @@ include $(BUILD_PHONY_PACKAGE)
 
 # recovery-persist (system partition dynamic executable run after /data mounts)
 # ===============================
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 24; echo $$?),0)
-    include $(CLEAR_VARS)
-    LOCAL_SRC_FILES := \
-        recovery-persist.cpp 
-    LOCAL_MODULE := recovery-persist
-    LOCAL_SHARED_LIBRARIES := liblog libbase libmetricslogger
-    LOCAL_STATIC_LIBRARIES := libotautil
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/otautil/include
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 29; echo $$?),0)
-        LOCAL_C_INCLUDES += system/core/libmetricslogger/include \
-            system/core/libstats/include
-    endif
-    LOCAL_CFLAGS := -Werror
-    LOCAL_INIT_RC := recovery-persist.rc
-    include $(BUILD_EXECUTABLE)
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := \
+    recovery-persist.cpp 
+LOCAL_MODULE := recovery-persist
+LOCAL_SHARED_LIBRARIES := liblog libbase libmetricslogger
+LOCAL_STATIC_LIBRARIES := libotautil
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/otautil/include
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 29; echo $$?),0)
+    LOCAL_C_INCLUDES += system/core/libmetricslogger/include \
+        system/core/libstats/include
 endif
+LOCAL_CFLAGS := -Werror
+LOCAL_INIT_RC := recovery-persist.rc
+include $(BUILD_EXECUTABLE)
 
 # recovery-refresh (system partition dynamic executable run at init)
 # ===============================
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 24; echo $$?),0)
-    include $(CLEAR_VARS)
-    LOCAL_SRC_FILES := \
-        recovery-refresh.cpp 
-    LOCAL_MODULE := recovery-refresh
-    LOCAL_SHARED_LIBRARIES := liblog libbase
-    LOCAL_STATIC_LIBRARIES := libotautil
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/otautil/include
-    LOCAL_CFLAGS := -Werror
-    LOCAL_INIT_RC := recovery-refresh.rc
-    include $(BUILD_EXECUTABLE)
-endif
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := \
+    recovery-refresh.cpp 
+LOCAL_MODULE := recovery-refresh
+LOCAL_SHARED_LIBRARIES := liblog libbase
+LOCAL_STATIC_LIBRARIES := libotautil
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/otautil/include
+LOCAL_CFLAGS := -Werror
+LOCAL_INIT_RC := recovery-refresh.rc
+include $(BUILD_EXECUTABLE)
 
 # shared libfusesideload
 # ===============================
@@ -578,13 +558,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
     LOCAL_MODULE_TAGS := optional
     LOCAL_MODULE := libfusesideload
     LOCAL_SHARED_LIBRARIES := libcutils libc
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
-        LOCAL_C_INCLUDES := $(LOCAL_PATH)/libmincrypt/includes
-        LOCAL_SHARED_LIBRARIES += libmincrypttwrp
-        LOCAL_CFLAGS += -DUSE_MINCRYPT
-    else
-        LOCAL_SHARED_LIBRARIES += libcrypto libbase
-    endif
+    LOCAL_SHARED_LIBRARIES += libcrypto libbase
     # ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
     LOCAL_SRC_FILES := fuse_sideload28/fuse_sideload.cpp
     # else
@@ -650,35 +624,20 @@ LOCAL_SHARED_LIBRARIES += libbase libbootloader_message libcrypto libext4_utils 
     liblog libselinux libtinyxml2 libutils libz libziparchive libcutils
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
 LOCAL_SHARED_LIBRARIES += libc++
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
-    LOCAL_SHARED_LIBRARIES += libmincrypttwrp
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/libmincrypt/includes
-    LOCAL_SRC_FILES += verifier24/verifier.cpp verifier24/asn1_decoder.cpp
-    LOCAL_CFLAGS += -DUSE_OLD_VERIFIER
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 28; echo $$?),0)
+    LOCAL_CFLAGS := -std=gnu++2a
+    LOCAL_C_INCLUDES += $(commands_TWRP_local_path)/install/include \
+                        $(commands_TWRP_local_path)/recovery_ui/include \
+                        $(commands_TWRP_local_path)/otautil/include \
+                        $(commands_TWRP_local_path)/minadbd \
+                        $(commands_TWRP_local_path)/minzip \
+                        system/libvintf/include
+    LOCAL_STATIC_LIBRARIES += libotautil libvintf_recovery libvintf 
 else
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 24; echo $$?),0)
-        ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 28; echo $$?),0)
-            LOCAL_CFLAGS := -std=gnu++2a
-            LOCAL_C_INCLUDES += $(commands_TWRP_local_path)/install/include \
-                                $(commands_TWRP_local_path)/recovery_ui/include \
-                                $(commands_TWRP_local_path)/otautil/include \
-                                $(commands_TWRP_local_path)/minadbd \
-                                $(commands_TWRP_local_path)/minzip \
-                                system/libvintf/include
-            LOCAL_STATIC_LIBRARIES += libotautil libvintf_recovery libvintf 
-        else
-            LOCAL_C_INCLUDES += $(commands_TWRP_local_path)/install28/
-            LOCAL_CFLAGS += -DUSE_28_INSTALL
-        endif
-        LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
-    else
-        LOCAL_SHARED_LIBRARIES += libcrypto libbase
-        LOCAL_SRC_FILES += verifier28/verifier.cpp verifier28/asn1_decoder.cpp
-        LOCAL_C_INCLUDES += $(LOCAL_PATH)/otautil/include $(LOCAL_PATH)/verifier28 \
-            system/libvintf/include
-        LOCAL_CFLAGS += -DUSE_28_VERIFIER
-    endif
+    LOCAL_C_INCLUDES += $(commands_TWRP_local_path)/install28/
+    LOCAL_CFLAGS += -DUSE_28_INSTALL
 endif
+LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
 
 ifeq ($(AB_OTA_UPDATER),true)
     LOCAL_CFLAGS += -DAB_OTA_UPDATER=1
@@ -769,10 +728,6 @@ include $(commands_TWRP_local_path)/gui/Android.mk \
     $(commands_TWRP_local_path)/libpixelflinger/Android.mk \
     $(commands_TWRP_local_path)/twrpDigest/Android.mk \
     $(commands_TWRP_local_path)/attr/Android.mk
-
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 24; echo $$?),0)
-    include $(commands_TWRP_local_path)/libmincrypt/Android.mk
-endif
 
 ifeq ($(TW_INCLUDE_CRYPTO), true)
     include $(commands_TWRP_local_path)/crypto/fde/Android.mk

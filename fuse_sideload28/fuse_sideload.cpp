@@ -58,12 +58,7 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
-#ifdef USE_MINCRYPT
-#include "mincrypt/sha256.h"
-#define  SHA256_DIGEST_LENGTH SHA256_DIGEST_SIZE
-#else
 #include <openssl/sha.h>
-#endif
 
 #include <array>
 #include <string>
@@ -271,11 +266,7 @@ static int fetch_block(fuse_data* fd, uint32_t block) {
   // - Otherwise, return -EINVAL for the read.
 
   uint8_t hash[SHA256_DIGEST_LENGTH];
-#ifdef USE_MINCRYPT
-  SHA256_hash(fd->block_data, fd->block_size, hash);
-#else
   SHA256(fd->block_data, fd->block_size, hash);
-#endif
   uint8_t* blockhash = fd->hashes + block * SHA256_DIGEST_LENGTH;
   if (memcmp(hash, blockhash, SHA256_DIGEST_LENGTH) == 0) {
     return 0;
