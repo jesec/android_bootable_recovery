@@ -38,7 +38,7 @@ else
     LOCAL_SRC_FILES += hardwarekeyboard.cpp
 endif
 
-LOCAL_SHARED_LIBRARIES += libminuitwrp libc libstdc++ libaosprecovery libselinux
+LOCAL_SHARED_LIBRARIES += libminuitwrp libc libc++ libaosprecovery libselinux
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../otautil/include
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
     LOCAL_SHARED_LIBRARIES += libziparchive 

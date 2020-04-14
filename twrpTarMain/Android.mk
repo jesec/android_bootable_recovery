@@ -20,7 +20,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
     LOCAL_C_INCLUDES += external/stlport/stlport bionic/libstdc++/include
     LOCAL_STATIC_LIBRARIES += libstlport_static
 endif
-LOCAL_STATIC_LIBRARIES += libstdc++
+LOCAL_STATIC_LIBRARIES += libc++_static
 
 LOCAL_C_INCLUDES += external/libselinux/include
 LOCAL_STATIC_LIBRARIES += libselinux
@@ -61,7 +61,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
     LOCAL_C_INCLUDES += external/stlport/stlport bionic/libstdc++/include
     LOCAL_SHARED_LIBRARIES += libstlport_static
 endif
-LOCAL_SHARED_LIBRARIES += libstdc++
+LOCAL_SHARED_LIBRARIES += libc++
 
 LOCAL_C_INCLUDES += external/libselinux/include
 LOCAL_SHARED_LIBRARIES += libselinux

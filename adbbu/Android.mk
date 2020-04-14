@@ -13,7 +13,7 @@ LOCAL_SRC_FILES = \
         libtwadbbu.cpp \
         twrpback.cpp
 
-LOCAL_SHARED_LIBRARIES += libz libc libstdc++ libtwrpdigest
+LOCAL_SHARED_LIBRARIES += libz libc libtwrpdigest
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
     LOCAL_SHARED_LIBRARIES += libstlport
@@ -28,7 +28,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
         adbbumain.cpp
 
-LOCAL_SHARED_LIBRARIES += libstdc++ libz libtwadbbu
+LOCAL_SHARED_LIBRARIES += libz libtwadbbu
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
     LOCAL_C_INCLUDES += external/stlport/stlport

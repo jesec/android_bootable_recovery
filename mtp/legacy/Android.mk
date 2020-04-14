@@ -35,7 +35,7 @@ LOCAL_SRC_FILES = \
     twrpMtp.cpp \
     mtp_MtpDatabase.cpp \
     node.cpp
-LOCAL_SHARED_LIBRARIES += libz libc libusbhost libstdc++ libdl libcutils libutils libaosprecovery libselinux
+LOCAL_SHARED_LIBRARIES += libz libc libusbhost libdl libcutils libutils libaosprecovery libselinux
 
 ifneq ($(TW_MTP_DEVICE),)
 	LOCAL_CFLAGS += -DUSB_MTP_DEVICE=$(TW_MTP_DEVICE)

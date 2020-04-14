@@ -15,7 +15,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
         LOCAL_C_INCLUDES += external/stlport/stlport
 endif
 
-LOCAL_SHARED_LIBRARIES += libc libstdc++
+LOCAL_SHARED_LIBRARIES += libc
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
         LOCAL_SHARED_LIBRARIES += libstlport

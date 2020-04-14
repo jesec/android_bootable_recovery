@@ -53,7 +53,6 @@ endif
 LOCAL_SHARED_LIBRARIES += libz \
                           libc \
                           libusbhost \
-                          libstdc++ \
                           libdl \
                           libcutils \
                           libutils \

@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libcryptfsfde
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := cryptfs.cpp
-LOCAL_SHARED_LIBRARIES := libcrypto libhardware libcutils libstdc++
+LOCAL_SHARED_LIBRARIES := libcrypto libhardware libcutils
 LOCAL_STATIC_LIBRARIES := libscrypttwrp_static
 LOCAL_C_INCLUDES := external/openssl/include $(commands_recovery_local_path)/crypto/scrypt/lib/crypto
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
@@ -61,7 +61,7 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 LOCAL_SRC_FILES := main.cpp cryptfs.cpp
-LOCAL_SHARED_LIBRARIES := libcrypto libhardware libcutils libc libstdc++
+LOCAL_SHARED_LIBRARIES := libcrypto libhardware libcutils libc
 LOCAL_C_INCLUDES := external/openssl/include $(commands_recovery_local_path)/crypto/scrypt/lib/crypto
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
     LOCAL_C_INCLUDES += bionic external/stlport/stlport
