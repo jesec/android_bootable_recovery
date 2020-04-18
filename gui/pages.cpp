@@ -39,14 +39,10 @@
 #include <string>
 #include <algorithm>
 
-#ifdef USE_MINZIP
-#include "../minzip/SysUtil.h"
-#else
 #ifdef USE_OTAUTIL_ZIPARCHIVE
 #include <otautil/SysUtil.h>
 #else
 #include <ziparchive/zip_archive.h>
-#endif
 #endif
 
 extern "C" {
@@ -1374,19 +1370,12 @@ int PageManager::LoadPackage(std::string name, std::string package, std::string 
 		tw_h_offset = 0;
 		if (!TWFunc::Path_Exists(package))
 			return -1;
-#ifdef USE_MINZIP
-		if (sysMapFile(package.c_str(), &map) != 0) {
-#else
 		if (!map.MapFile(package)) {
-#endif
 			LOGERR("Failed to map '%s'\n", package.c_str());
 			goto error;
 		}
 		if (!zip.Open(package.c_str(), &map)) {
 			LOGERR("Unable to open zip archive '%s'\n", package.c_str());
-#ifdef USE_MINZIP
-			sysReleaseMap(&map);
-#endif
 			goto error;
 		}
 		ctx.zip = &zip;
@@ -1428,9 +1417,6 @@ int PageManager::LoadPackage(std::string name, std::string package, std::string 
 
 	if (ctx.zip) {
 		ctx.zip->Close();
-#ifdef USE_MINZIP
-		sysReleaseMap(&map);
-#endif
 	}
 	return ret;
 
@@ -1438,9 +1424,6 @@ error:
 	// Sometimes we get here without a real error
 	if (ctx.zip) {
 		ctx.zip->Close();
-#ifdef USE_MINZIP
-		sysReleaseMap(&map);
-#endif
 	}
 	return -1;
 }

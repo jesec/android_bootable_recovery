@@ -9,32 +9,22 @@ LOCAL_SHARED_LIBRARIES := libcrypto libhardware libcutils
 LOCAL_STATIC_LIBRARIES := libscrypttwrp_static
 LOCAL_C_INCLUDES := external/openssl/include $(commands_recovery_local_path)/crypto/scrypt/lib/crypto
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
-    #8.0 or higher
-    LOCAL_C_INCLUDES +=  external/boringssl/src/include
-    LOCAL_SHARED_LIBRARIES += libselinux libc libc++ libbase libcrypto libcutils libkeymaster_messages libhardware libprotobuf-cpp-lite libe4crypt android.hardware.keymaster@3.0 libkeystore_binder libhidlbase libutils libbinder
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
-        #9.0 rules
-        LOCAL_CFLAGS += -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-comment
-        LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@4.0 libkeymaster4support libkeyutils
-        LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=4
-    else
-        #8.x rules
-        ifneq ($(wildcard system/core/libkeyutils/Android.bp),)
-            #only present in some 8.0 trees and should be in all 8.1 trees
-            LOCAL_SHARED_LIBRARIES += libkeyutils
-        endif
-        LOCAL_SHARED_LIBRARIES += libsoftkeymaster
-        LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=3
-    endif
+#8.0 or higher
+LOCAL_C_INCLUDES +=  external/boringssl/src/include
+LOCAL_SHARED_LIBRARIES += libselinux libc libc++ libbase libcrypto libcutils libkeymaster_messages libhardware libprotobuf-cpp-lite libe4crypt android.hardware.keymaster@3.0 libkeystore_binder libhidlbase libutils libbinder
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
+    #9.0 rules
+    LOCAL_CFLAGS += -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-comment
+    LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@4.0 libkeymaster4support libkeyutils
+    LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=4
 else
-    # <= 7.x rules
-    ifneq ($(wildcard hardware/libhardware/include/hardware/keymaster0.h),)
-        LOCAL_C_INCLUDES +=  external/boringssl/src/include
-        LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=1
-    else
-        LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=0
+    #8.x rules
+    ifneq ($(wildcard system/core/libkeyutils/Android.bp),)
+        #only present in some 8.0 trees and should be in all 8.1 trees
+        LOCAL_SHARED_LIBRARIES += libkeyutils
     endif
+    LOCAL_SHARED_LIBRARIES += libsoftkeymaster
+    LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=3
 endif
 ifeq ($(TARGET_HW_DISK_ENCRYPTION),true)
     ifeq ($(TARGET_CRYPTFS_HW_PATH),)
@@ -59,32 +49,22 @@ LOCAL_SRC_FILES := main.cpp cryptfs.cpp
 LOCAL_SHARED_LIBRARIES := libcrypto libhardware libcutils libc
 LOCAL_C_INCLUDES := external/openssl/include $(commands_recovery_local_path)/crypto/scrypt/lib/crypto
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
-    #8.0 or higher
-    LOCAL_C_INCLUDES +=  external/boringssl/src/include
-    LOCAL_SHARED_LIBRARIES += libselinux libc libc++ libbase libcrypto libcutils libkeymaster_messages libhardware libprotobuf-cpp-lite libe4crypt android.hardware.keymaster@3.0 libkeystore_binder libhidlbase libutils libbinder
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
-        #9.0 rules
-        LOCAL_CFLAGS += -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-comment
-        LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@4.0 libkeymaster4support libkeyutils
-        LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=4
-    else
-        #8.x rules
-        ifneq ($(wildcard system/core/libkeyutils/Android.bp),)
-            #only present in some 8.0 trees and should be in all 8.1 trees
-            LOCAL_SHARED_LIBRARIES += libkeyutils
-        endif
-        LOCAL_SHARED_LIBRARIES += libsoftkeymaster
-        LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=3
-    endif
+#8.0 or higher
+LOCAL_C_INCLUDES +=  external/boringssl/src/include
+LOCAL_SHARED_LIBRARIES += libselinux libc libc++ libbase libcrypto libcutils libkeymaster_messages libhardware libprotobuf-cpp-lite libe4crypt android.hardware.keymaster@3.0 libkeystore_binder libhidlbase libutils libbinder
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
+    #9.0 rules
+    LOCAL_CFLAGS += -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-comment
+    LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@4.0 libkeymaster4support libkeyutils
+    LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=4
 else
-    # <= 7.x rules
-    ifneq ($(wildcard hardware/libhardware/include/hardware/keymaster0.h),)
-        LOCAL_C_INCLUDES +=  external/boringssl/src/include
-        LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=1
-    else
-        LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=0
+    #8.x rules
+    ifneq ($(wildcard system/core/libkeyutils/Android.bp),)
+        #only present in some 8.0 trees and should be in all 8.1 trees
+        LOCAL_SHARED_LIBRARIES += libkeyutils
     endif
+    LOCAL_SHARED_LIBRARIES += libsoftkeymaster
+    LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=3
 endif
 ifeq ($(TARGET_HW_DISK_ENCRYPTION),true)
     ifeq ($(TARGET_CRYPTFS_HW_PATH),)

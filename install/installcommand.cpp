@@ -30,10 +30,8 @@
 #include "common.h"
 #include "installcommand.h"
 #include "zipwrap.hpp"
-#ifndef USE_MINZIP
 #include <ziparchive/zip_archive.h>
 #include <vintf/VintfObjectRecovery.h>
-#endif
 #include "install/install.h"
 
 #ifdef AB_OTA_UPDATER
@@ -234,13 +232,6 @@ update_binary_command(const char* path, int retry_count,
     return 0;
 }
 
-#ifdef USE_MINZIP
-bool verify_package_compatibility(ZipWrap *package_zip) {
-  if (package_zip->EntryExists("compatibility.zip"))
-    printf("Cannot verify treble package compatibility, must build TWRP in Oreo tree or higher.\n");
-  return true;
-}
-#else
 // Verifes the compatibility info in a Treble-compatible package. Returns true directly if the
 // entry doesn't exist. Note that the compatibility info is packed in a zip file inside the OTA
 // package.
@@ -309,4 +300,3 @@ bool verify_package_compatibility(ZipWrap *zw) {
   printf("Failed to verify package compatibility (result %i): %s\n", result, err.c_str());
   return false;
 }
-#endif

@@ -19,13 +19,8 @@
 #define __ZIPWRAP_HPP
 
 #include <string>
-#ifdef USE_MINZIP
-#include "minzip/Zip.h"
-#include "minzip/SysUtil.h"
-#else
 #include <ziparchive/zip_archive.h>
 #include "otautil/sysutil.h"
-#endif
 
 using namespace std;
 
@@ -42,19 +37,11 @@ class ZipWrap {
 		long GetUncompressedSize(const string& filename);
 		bool ExtractToBuffer(const string& filename, uint8_t* begin);
 		bool ExtractRecursive(const string& source_dir, const string& target_dir);
-#ifdef USE_MINZIP
-		loff_t GetEntryOffset(const string& filename);
-#else
 		off64_t GetEntryOffset(const string& filename);
 		ZipArchiveHandle GetZipArchiveHandle();
-#endif
 
 	private:
-#ifdef USE_MINZIP
-		ZipArchive Zip;
-#else
 		ZipArchiveHandle Zip;
-#endif
 		string zip_file;
 		bool zip_open;
 };

@@ -137,17 +137,12 @@ LOCAL_SHARED_LIBRARIES += libcrypto
 
 LOCAL_SHARED_LIBRARIES += libbase
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
-        LOCAL_SHARED_LIBRARIES += libziparchive
-        LOCAL_C_INCLUDES += $(LOCAL_PATH)/otautil/include system/core/libziparchive/include
-    else
-        LOCAL_SHARED_LIBRARIES += libziparchive
-        LOCAL_C_INCLUDES += system/core/libziparchive/include
-    endif
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
+    LOCAL_SHARED_LIBRARIES += libziparchive
+    LOCAL_C_INCLUDES += $(LOCAL_PATH)/otautil/include system/core/libziparchive/include
 else
-    LOCAL_SHARED_LIBRARIES += libminzip
-    LOCAL_CFLAGS += -DUSE_MINZIP
+    LOCAL_SHARED_LIBRARIES += libziparchive
+    LOCAL_C_INCLUDES += system/core/libziparchive/include
 endif
 
 ifneq ($(wildcard system/core/libsparse/Android.mk),)
@@ -467,22 +462,20 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
 endif
 endif
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
-    TWRP_REQUIRED_MODULES += ld.config.txt
-    ifeq ($(BOARD_VNDK_RUNTIME_DISABLE),true)
+TWRP_REQUIRED_MODULES += ld.config.txt
+ifeq ($(BOARD_VNDK_RUNTIME_DISABLE),true)
+    LOCAL_POST_INSTALL_CMD += \
+    sed 's/\(namespace.default.search.paths\)\s\{1,\}=/namespace.default.search.paths  = \/sbin\n\1 +=/' \
+            $(TARGET_OUT_ETC)/ld.config.vndk_lite.txt > $(TARGET_RECOVERY_ROOT_OUT)/sbin/ld.config.txt;
+else
+    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
         LOCAL_POST_INSTALL_CMD += \
-	    sed 's/\(namespace.default.search.paths\)\s\{1,\}=/namespace.default.search.paths  = \/sbin\n\1 +=/' \
-                $(TARGET_OUT_ETC)/ld.config.vndk_lite.txt > $(TARGET_RECOVERY_ROOT_OUT)/sbin/ld.config.txt;
+        sed 's/\(namespace.default.search.paths\)\s\{1,\}=/namespace.default.search.paths  = \/sbin\n\1 +=/' \
+                $(TARGET_RECOVERY_ROOT_OUT)/system/etc/ld.config.txt > $(TARGET_RECOVERY_ROOT_OUT)/sbin/ld.config.txt
     else
-        ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
-            LOCAL_POST_INSTALL_CMD += \
-            sed 's/\(namespace.default.search.paths\)\s\{1,\}=/namespace.default.search.paths  = \/sbin\n\1 +=/' \
-                    $(TARGET_RECOVERY_ROOT_OUT)/system/etc/ld.config.txt > $(TARGET_RECOVERY_ROOT_OUT)/sbin/ld.config.txt
-        else
-            LOCAL_POST_INSTALL_CMD += \
-            sed 's/\(namespace.default.search.paths\)\s\{1,\}=/namespace.default.search.paths  = \/sbin\n\1 +=/' \
-                    $(TARGET_OUT_ETC)/ld.config.txt > $(TARGET_RECOVERY_ROOT_OUT)/sbin/ld.config.txt;
-        endif
+        LOCAL_POST_INSTALL_CMD += \
+        sed 's/\(namespace.default.search.paths\)\s\{1,\}=/namespace.default.search.paths  = \/sbin\n\1 +=/' \
+                $(TARGET_OUT_ETC)/ld.config.txt > $(TARGET_RECOVERY_ROOT_OUT)/sbin/ld.config.txt;
     endif
 endif
 
@@ -628,7 +621,6 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 28; echo $$?),0)
                         $(commands_TWRP_local_path)/recovery_ui/include \
                         $(commands_TWRP_local_path)/otautil/include \
                         $(commands_TWRP_local_path)/minadbd \
-                        $(commands_TWRP_local_path)/minzip \
                         system/libvintf/include
     LOCAL_STATIC_LIBRARIES += libotautil libvintf_recovery libvintf 
 else
@@ -641,19 +633,15 @@ ifeq ($(AB_OTA_UPDATER),true)
     LOCAL_CFLAGS += -DAB_OTA_UPDATER=1
 endif
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
-    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
-        # LOCAL_SRC_FILES += otautil/ZipUtil.cpp otautil/SysUtil.cpp otautil/DirUtil.cpp
-        LOCAL_SHARED_LIBRARIES += libziparchive libext4_utils libcrypto libcrypto_utils libfs_mgr
-        LOCAL_STATIC_LIBRARIES += libvintf_recovery liblogwrap libavb libvintf libtinyxml2 libz
-        LOCAL_C_INCLUDES += $(LOCAL_PATH)/otautil/include
-        ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 27; echo $$?),0)
-            # Android 9.0's libvintf also needs this library
-            LOCAL_STATIC_LIBRARIES += libhidl-gen-utils
-        endif
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
+    # LOCAL_SRC_FILES += otautil/ZipUtil.cpp otautil/SysUtil.cpp otautil/DirUtil.cpp
+    LOCAL_SHARED_LIBRARIES += libziparchive libext4_utils libcrypto libcrypto_utils libfs_mgr
+    LOCAL_STATIC_LIBRARIES += libvintf_recovery liblogwrap libavb libvintf libtinyxml2 libz
+    LOCAL_C_INCLUDES += $(LOCAL_PATH)/otautil/include
+    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 27; echo $$?),0)
+        # Android 9.0's libvintf also needs this library
+        LOCAL_STATIC_LIBRARIES += libhidl-gen-utils
     endif
-else
-    LOCAL_CFLAGS += -DUSE_MINZIP
 endif
 
 include $(BUILD_SHARED_LIBRARY)
@@ -710,7 +698,6 @@ include $(commands_TWRP_local_path)/gui/Android.mk \
     $(commands_TWRP_local_path)/minuitwrp/Android.mk \
     $(commands_TWRP_local_path)/openaes/Android.mk \
     $(commands_TWRP_local_path)/twrpTarMain/Android.mk \
-    $(commands_TWRP_local_path)/minzip/Android.mk \
     $(commands_TWRP_local_path)/dosfstools/Android.mk \
     $(commands_TWRP_local_path)/etc/Android.mk \
     $(commands_TWRP_local_path)/simg2img/Android.mk \
