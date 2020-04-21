@@ -22,46 +22,20 @@ ifneq ($(wildcard hardware/libhardware/include/hardware/keymaster0.h),)
 endif
 #8.0 or higher
 LOCAL_CFLAGS += -DHAVE_GATEKEEPER1
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 29; echo $$?),0)
-    LOCAL_SHARED_LIBRARIES += android.hardware.confirmationui@1.0
-    # LOCAL_CFLAGS += -DUSE_
-endif
+LOCAL_SHARED_LIBRARIES += android.hardware.confirmationui@1.0
+# LOCAL_CFLAGS += -DUSE_
 LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@3.0 libkeystore_binder libhidlbase libutils libbinder android.hardware.gatekeeper@1.0
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
-    #9.0 rules
-    LOCAL_CFLAGS += -DUSE_KEYSTORAGE_4 -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-comment
-    LOCAL_SRC_FILES += Ext4CryptPie.cpp Keymaster4.cpp KeyStorage4.cpp KeyUtil.cpp MetadataCrypt.cpp KeyBuffer.cpp
-    LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@4.0 libkeymaster4support
-    LOCAL_SHARED_LIBRARIES += android.hardware.gatekeeper@1.0 libkeystore_parcelables libkeystore_aidl
-    LOCAL_CFLAGS += -DHAVE_SYNTH_PWD_SUPPORT
-    LOCAL_SRC_FILES += Weaver1.cpp
-    LOCAL_SHARED_LIBRARIES += android.hardware.weaver@1.0
-    LOCAL_CFLAGS += -DHAVE_LIBKEYUTILS
-    LOCAL_SHARED_LIBRARIES += libkeyutils
-else
-    #8.0 rules
-    LOCAL_CFLAGS += -DUSE_KEYSTORAGE_3
-    LOCAL_SRC_FILES += Ext4Crypt.cpp Keymaster3.cpp KeyStorage3.cpp
-    ifneq ($(wildcard hardware/interfaces/weaver/Android.bp),)
-        #only present in some 8.0 trees and should be in all 8.1 trees
-        LOCAL_CFLAGS += -DHAVE_SYNTH_PWD_SUPPORT
-        LOCAL_SRC_FILES += Weaver1.cpp
-        LOCAL_SHARED_LIBRARIES += android.hardware.weaver@1.0
-    endif
-    ifneq ($(wildcard system/core/libkeyutils/Android.bp),)
-        #only present in some 8.0 trees and should be in all 8.1 trees
-        LOCAL_CFLAGS += -DHAVE_LIBKEYUTILS
-        LOCAL_SHARED_LIBRARIES += libkeyutils
-    endif
-endif
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
-    LOCAL_REQUIRED_MODULES := keystore_auth
-else
-    LOCAL_ADDITIONAL_DEPENDENCIES := keystore_auth
-endif
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 28; echo $$?),0)
-    LOCAL_SHARED_LIBRARIES += libsoftkeymaster
-endif
+#9.0 rules
+LOCAL_CFLAGS += -DUSE_KEYSTORAGE_4 -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-comment
+LOCAL_SRC_FILES += Ext4CryptPie.cpp Keymaster4.cpp KeyStorage4.cpp KeyUtil.cpp MetadataCrypt.cpp KeyBuffer.cpp
+LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@4.0 libkeymaster4support
+LOCAL_SHARED_LIBRARIES += android.hardware.gatekeeper@1.0 libkeystore_parcelables libkeystore_aidl
+LOCAL_CFLAGS += -DHAVE_SYNTH_PWD_SUPPORT
+LOCAL_SRC_FILES += Weaver1.cpp
+LOCAL_SHARED_LIBRARIES += android.hardware.weaver@1.0
+LOCAL_CFLAGS += -DHAVE_LIBKEYUTILS
+LOCAL_SHARED_LIBRARIES += libkeyutils
+LOCAL_REQUIRED_MODULES := keystore_auth
 
 include $(BUILD_SHARED_LIBRARY)
 
@@ -96,11 +70,9 @@ LOCAL_MODULE_CLASS := RECOVERY_EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
 LOCAL_SRC_FILES := keystore_auth.cpp
 LOCAL_SHARED_LIBRARIES := libc libkeystore_binder libutils libbinder liblog
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
-    #9.0
-    LOCAL_CFLAGS += -DUSE_SECURITY_NAMESPACE
-    LOCAL_SHARED_LIBRARIES += libkeystore_aidl
-endif
+#9.0
+LOCAL_CFLAGS += -DUSE_SECURITY_NAMESPACE
+LOCAL_SHARED_LIBRARIES += libkeystore_aidl
 LOCAL_LDFLAGS += -Wl,-dynamic-linker,/sbin/linker64
 
 include $(BUILD_EXECUTABLE)

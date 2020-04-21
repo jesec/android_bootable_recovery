@@ -385,18 +385,6 @@ int OpenRecoveryScript::run_script_file(void) {
 					ret_val = 1; // failure
 				}
 				sideload = 1; // Causes device to go to the home screen afterwards
-#ifdef USE_28_INSTALL 
-				if (sideload_child_pid != 0) {
-					LOGINFO("Signaling child sideload process to exit.\n");
-					struct stat st;
-					// Calling stat() on this magic filename signals the minadbd
-					// subprocess to shut down.
-					stat(FUSE_SIDELOAD_HOST_EXIT_PATHNAME, &st);
-					int status;
-					LOGINFO("Waiting for child sideload process to exit.\n");
-					waitpid(sideload_child_pid, &status, 0);
-				}
-#endif
 				property_set("ctl.start", "adbd");
 				gui_msg("done=Done.");
 			} else if (strcmp(command, "fixperms") == 0 || strcmp(command, "fixpermissions") == 0 || strcmp(command, "fixcontexts") == 0) {

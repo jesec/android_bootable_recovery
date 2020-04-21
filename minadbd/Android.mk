@@ -16,8 +16,7 @@ LOCAL_PATH:= $(call my-dir)
 
 minadbd_cflags := \
     -Wall -Werror \
-    -DADB_HOST=0 \
-    -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
+    -DADB_HOST=0
 
 # libminadbd (static library)
 # ===============================
@@ -39,17 +38,11 @@ LOCAL_SHARED_LIBRARIES := libadbd libbase liblog libcutils libc
 
 LOCAL_SHARED_LIBRARIES += libcrypto \
 $(if $(WITH_CRYPTO_UTILS),libcrypto_utils)
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 27; echo $$?),0)
-    # Needed in Android 9.0
-    LOCAL_WHOLE_STATIC_LIBRARIES += libasyncio
-endif
+# Needed in Android 9.0
+LOCAL_WHOLE_STATIC_LIBRARIES += libasyncio
 
-ifeq ($shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/../fuse_sideload28/
-else
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/../fuse_sideload/include 
-    LOCAL_SHARED_LIBRARIES += libfusesideload
-endif
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../fuse_sideload/include 
+LOCAL_SHARED_LIBRARIES += libfusesideload
 
 include $(BUILD_SHARED_LIBRARY)
 
@@ -70,18 +63,12 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/.. system/core/adb
 LOCAL_SHARED_LIBRARIES := libadbd libbase liblog libcutils libc
 #LOCAL_STATIC_LIBRARIES := libbase liblog libcutils libc
 
-ifeq ($shell test $(PLATFORM_SDK_VERSION) -lt 29; echo $$?),0)
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/../fuse_sideload28/
-else
-    LOCAL_C_INCLUDES += $(LOCAL_PATH)/../fuse_sideload/include
-endif
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../fuse_sideload/include
 
 LOCAL_SHARED_LIBRARIES += libcrypto \
 $(if $(WITH_CRYPTO_UTILS),libcrypto_utils)
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 27; echo $$?),0)
-    # Needed in Android 9.0
-    LOCAL_WHOLE_STATIC_LIBRARIES += libasyncio
-endif
+# Needed in Android 9.0
+LOCAL_WHOLE_STATIC_LIBRARIES += libasyncio
 
 include $(BUILD_STATIC_LIBRARY)
 

@@ -32,11 +32,7 @@ LOCAL_PATH := $(call my-dir)
 #   LOCAL_CFLAGS += -DMSM_BSP
 #   LOCAL_SRC_FILES += graphics_overlay.cpp
 #   ifeq ($(TARGET_PREBUILT_KERNEL),)
-#     ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
-#       LOCAL_REQUIRED_MODULES := $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
-#     else
-#       LOCAL_ADDITIONAL_DEPENDENCIES := $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
-#     endif
+#     LOCAL_REQUIRED_MODULES := $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
 #     LOCAL_C_INCLUDES += $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include
 #   else
 #     ifeq ($(TARGET_CUSTOM_KERNEL_HEADERS),)
@@ -63,10 +59,8 @@ LOCAL_PATH := $(call my-dir)
 # else
 # LOCAL_WHOLE_STATIC_LIBRARIES += libdrm
 # endif
-# ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
-#     LOCAL_CFLAGS += -DHAS_LIBSYNC
-#     LOCAL_WHOLE_STATIC_LIBRARIES += libsync_recovery
-# endif
+# LOCAL_CFLAGS += -DHAS_LIBSYNC
+# LOCAL_WHOLE_STATIC_LIBRARIES += libsync_recovery
 
 # LOCAL_CFLAGS += -Wall -Werror -std=c++14 -Wno-unused-private-field
 # LOCAL_C_INCLUDES += $(LOCAL_PATH)/include

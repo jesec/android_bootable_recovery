@@ -1977,11 +1977,7 @@ void TWPartition::Check_FS_Type() {
 }
 
 bool TWPartition::Wipe_EXTFS(string File_System) {
-#if PLATFORM_SDK_VERSION < 28
-	if (!TWFunc::Path_Exists("/sbin/mke2fs"))
-#else
 	if (!TWFunc::Path_Exists("/sbin/mke2fs") || !TWFunc::Path_Exists("/sbin/e2fsdroid"))
-#endif
 		return Wipe_RMRF();
 
 	int ret;
