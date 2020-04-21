@@ -258,6 +258,7 @@ int TWinstall_zip(const char* path, int* wipe_cache) {
 		return -1;
 	}
 
+#if 0 // TODO
 	if (zip_verify) {
 		gui_msg("verify_zip_sig=Verifying zip signature...");
 		std::vector<Certificate> loadedKeys;
@@ -275,6 +276,7 @@ int TWinstall_zip(const char* path, int* wipe_cache) {
 			gui_msg("verify_zip_done=Zip signature verified successfully.");
 		}
 	}
+#endif
 	ZipWrap Zip;
 	if (!Zip.Open(path, &map)) {
 		gui_err("zip_corrupt=Zip file is corrupt!");
