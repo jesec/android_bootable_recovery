@@ -144,6 +144,7 @@ ifeq ($(AB_OTA_UPDATER),true)
 endif
 
 LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_POST_INSTALL_CMD += ln -sf /sbin/recovery $(TARGET_RECOVERY_ROOT_OUT)/system/bin/recovery;
 
 ifeq ($(TARGET_RECOVERY_TWRP_LIB),)
     LOCAL_SRC_FILES += BasePartition.cpp
